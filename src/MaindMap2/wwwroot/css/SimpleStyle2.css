@@ -1,0 +1,17 @@
+﻿.drggable_node {
+ background-color: lightblue;
+     width: 200px;
+     height: 150px;
+     padding: 0.5em;
+}
+.create-new-item-button {
+    width:60%;
+    height:30%;
+    background-color:red;
+    position:absolute;
+    margin-left:15%;
+}
+
+.draggable {
+  position : absolute;
+}  

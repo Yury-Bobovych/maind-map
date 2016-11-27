@@ -1,0 +1,333 @@
+﻿
+
+
+@{
+    Layout = "";
+    if (ViewBag.mapId == null) {
+        ViewBag.mapId = Guid.NewGuid().ToString();
+    }
+    Microsoft.AspNetCore.Html.HtmlString s = Html.Raw(System.Net.WebUtility.HtmlDecode(ViewBag.lines));
+    s = new Microsoft.AspNetCore.Html.HtmlString(ViewBag.lines);
+
+
+
+}
+<html>
+<head>
+    <environment names="Development">
+        <link rel="stylesheet" href="~/css/SimpleStyle2.css" />
+    </environment>
+</head>
+<body>
+    
+    
+    
+    <a href='@Url.Action("Index","Home")' style="position:fixed;left:50px;top:20px; width:50px;height:30px;background-color:red;">
+       Home
+    </a>    
+    <div style="position:fixed;left:150px;top:20px; width:50px;height:30px;background-color:red;" onclick="SimpleStyle.dataPost()">Save</div>
+  
+    
+    
+    <environment names="Development">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.11.4/jquery-ui.js" type="text/javascript"></script>
+        
+    </environment>
+        <script>
+
+            var getGuid = (function () {
+                function S4() {
+                    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+                }
+                return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0, 3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
+
+            });
+            var SimpleStyleView = (function () {
+                return {
+                    SimpleNode: function (ContextMenu, id) {
+                        if (ContextMenu === undefined) {
+                            ContextMenu = new SimpleStyleView.SimpleNodeContextMenu();
+                        }
+
+                        if (id === undefined)
+                            id = getGuid();
+                        var top = 0, left = 0;
+
+                        this.Position = function () { return { top: top, left: left } };
+                        this.childrens = [];
+                        this.getId = function () { return id; }
+                        this.getNode = function (_top, _left, styleString, mainAttrString, subAttrString) {
+                            
+                            top = _top; left = _left;
+                            if (styleString === undefined) { styleString = " "; }
+                            if (mainAttrString === undefined) { mainAttrString = " "; }
+                            if (subAttrString === undefined) { subAttrString = " "; }
+                            return "<div class='draggable drggable_node' style='top: " + top + "px; left:" + left + "px'  " + mainAttrString + " data-obj-id=\"" + id + "\"  width=\" 100px\"  heigth=\" 100px\"><div class='node-data'><textarea style='width:100%; height:85%' onchange='this.defaultValue = this.value'></textarea></div>  <div class='create-new-item-button' " + subAttrString + "></div>" + "</div>";
+                        }
+
+                        this.getClone = function () { return new SimpleStyleView.SimpleNode() }
+                        this.addChildrens = function (_childrens) {
+                            if (Array.isArray(_childrens)) {
+                                for (var param in _childrens)
+                                { childrens.push(_childrens[param]) }
+                            } else { childrens.push(_childrens) }
+                        }
+                    },
+                    SimpleNodeContextMenu: function () {
+                        var params = {
+                            color: {
+                                is: 'red',
+                                get: function () { return 'color is ' + this.is },
+                                set: function (color) { this.is = color },
+                            },
+                            thickness: {
+                                is: '5px',
+                                get: function () { return ' thickness is ' + this.is },
+                                set: function (thickness) { this.is = thickness + 'px' }
+                            }
+                        }
+                        this.getStyle = function () { return " " }
+                        this.getParams = function () {
+                            var inString = " ";
+                            for (var prop in params) {
+                                inString += params[prop].get();
+                            }
+                            return inString;
+                        }
+
+                    },
+                    SimpleLine: function (ContextMenu, beginId, endId, id) {
+                        if (id === undefined)
+                            var id = getGuid();
+
+                        var top_begin = 0, left_begin = 0, top_end = 0, left_end = 0;
+                        this.getId = function () { return id; }
+                        this.getBeginId = function () { return beginId; }
+                        this.getEndId = function () { return endId; }
+                        this.getLine = function (_top_begin, _left_begin, _top_end, _left_end) {
+                            top_begin = _top_begin; left_begin = _left_begin; top_end = _top_end; left_end = _left_end; begin_id = _left_begin;
+                            var min_top = Math.min(_top_begin, _top_end);
+                            _top_begin -= min_top; _top_end -= min_top;
+
+                            var min_left = Math.min(_left_begin, _left_end);
+                            _left_begin -= min_left; _left_end -= min_left;
+                            return "<svg style=\"position:absolute;top:" + min_top + "px; left:" + min_left + "px;  width:" + Number(_left_end + _left_begin) + "px ;  height:" + Number(_top_begin + _top_end) + "px;\"  data-line-id=" + id + " data-begin-id=" + beginId + " data-end-id=" + endId + ">" +
+                                 "<path style='position:absolute;' d= 'M " + _left_begin + " " + _top_begin + " l " + Number(_left_end - _left_begin) + " " + Number(_top_end - _top_begin) + "' stroke='red' stroke-width='3'></path>" +
+                                "</svg>"
+
+
+                        }
+                    },
+                    SimpleLineContextMenu: function () {
+                        var params = {
+                            color: {
+                                is: 'red',
+                                icon: 'colorIcon',
+                                getView: '<input type="color" width="200" height="100"/>',
+
+
+                            },
+                            thickness: {
+                                is: '5px',
+                                icon: 'thicknessIcon',
+                                getView: '<input type="color" width="200" height="100" onchange="alert(this.value)"/>'
+                            }
+                        }
+                    },
+                    SimpleStyleFactory: function () {
+
+                        this.NodeArr = [];
+                        this.LineArr = [];
+                        this.setName = function (_name) { name = _name; this.qwe(); }
+                        this.initFromHtml = function (nodeCont, lineCont) {
+
+                            var lines = $('#' + lineCont).children();
+
+                            for (var id = 0; id < lines.length; id++) {
+                                var Line = new SimpleStyleView.SimpleLine(new SimpleStyleView.SimpleLineContextMenu, $(lines[id]).attr('data-begin-id'), $(lines[id]).attr('data-end-id'), $(lines[id]).attr('data-line-id'));
+                                this.LineArr[Line.getId()] = Line;
+
+                            }
+                            console.log(this.LineArr);
+                            for (var id in this.LineArr) {
+
+                                var Node = new SimpleStyleView.SimpleNode(new SimpleStyleView.SimpleNodeContextMenu, this.LineArr[id].getEndId());
+                                this.NodeArr[Node.getId()] = Node;
+                            }
+                            for (var id in this.LineArr) {
+                                var Node = new SimpleStyleView.SimpleNode(new SimpleStyleView.SimpleNodeContextMenu, this.LineArr[id].getEndId());
+                                this.NodeArr[Node.getId()] = Node;
+                                this.NodeArr[Node.getId()].childrens[this.LineArr[id].getEndId()] = this.NodeArr[this.LineArr[id].getEndId()];
+                            }
+
+                        };
+                        this.getLineObj = function (beginId, endId) {
+                            var Line = new SimpleStyleView.SimpleLine(new SimpleStyleView.SimpleLineContextMenu, beginId, endId);
+                            this.LineArr[Line.getId()] = Line;
+                            return Line;
+                        };
+                        this.getNodeObj = function (parentId) {
+                            var Node = new SimpleStyleView.SimpleNode(new SimpleStyleView.SimpleNodeContextMenu);
+                            this.NodeArr[Node.getId()] = Node;
+                            console.log(this.NodeArr);
+
+                            if (parentId !== undefined)
+                                this.NodeArr[parentId].childrens[Node.getId()] = Node;
+                            return Node;
+                        };
+                    }
+                }
+            })();
+            var Style = (function () {
+                return function (Factory) {
+                    function getName() {
+                        for (var name in window) {
+                            if (window[name] === this) {
+                                return (name);
+
+                            }
+                        }
+                    }
+
+
+                    var LineContainer = "line-container";
+                    var NodeContainer = "node-container";
+                    function PositinSenter(evenetTarget) {
+                        return {
+                            top: $(evenetTarget).position().top + $(evenetTarget).height() / 2,
+                            left: $(evenetTarget).position().left + $(evenetTarget).width() / 2
+                        }
+                    }
+
+                    this.init = function () {
+                        $('body').prepend('<div id=' + NodeContainer + '></div>')
+                        $('body').prepend('<div id=' + LineContainer + '></div>')
+                        if ('@ViewBag.nodes' + "" == "") {
+                            var item = this.createNode();
+                            $('#' + NodeContainer).append(item);
+                        } else {
+                            $('#' + LineContainer).append('@(new Microsoft.AspNetCore.Html.HtmlString(ViewBag.lines))');
+                            $('#' + NodeContainer).append('@(new Microsoft.AspNetCore.Html.HtmlString(ViewBag.nodes))');
+                            Factory.initFromHtml(NodeContainer, LineContainer);
+
+                        }
+                        $(".draggable").draggable();
+                    }
+
+                    this.createLine = function (beginId, top_begin, left_begin, top_end, left_end) {
+                        var item = Factory.getLineObj(beginId, endId).getLine(top_begin, left_begin, top_end, left_end);
+                        $('#' + LineContainer).append(item);
+
+
+                    };
+                    this.createNode = function (event) {
+                        console.log($(Factory.NodeArr).serializeArray());
+
+                        var item;
+                        if (event === undefined) {
+                            item = Factory.getNodeObj().getNode(100, 100, '', 'onmousedown="' + getName.call(this) + '.isMouseDownOnDiv(event)"' + 'onmouseup="' + getName.call(this) + '.isMouseUpOnDiv(event)"' + ' onmousemove="' + getName.call(this) + '.moveLine(event)"', 'onclick="' + getName.call(this) + '.createNode(event)"');
+                            $('#' + NodeContainer).append(item);
+                        } else {
+
+                            var eventObj = $(event.target).parent();
+                            var nodeobj = Factory.getNodeObj(eventObj.attr('data-obj-id'));
+                            item = nodeobj.getNode(eventObj.position().top + 200, eventObj.position().left + 100, '', 'onmousedown="' + getName.call(this) + '.isMouseDownOnDiv(event)"' + 'onmouseup="' + getName.call(this) + '.isMouseUpOnDiv(event)"' + ' onmousemove="' + getName.call(this) + '.moveLine(event)"', 'onclick="' + getName.call(this) + '.createNode(event)"');
+
+                            $('#' + NodeContainer).append(item);
+                            var newLine = Factory.getLineObj(eventObj.attr('data-obj-id'), nodeobj.getId()).getLine(PositinSenter($(event.target).parent()).top, PositinSenter($(event.target).parent()).left, PositinSenter('[data-obj-id="' + nodeobj.getId() + '"]').top, PositinSenter('[data-obj-id="' + nodeobj.getId() + '"]').left);
+                            $('#' + LineContainer).append(newLine);
+                        }
+                        $(".draggable").draggable();
+
+
+                    };
+                    this.isMouseDownOnDiv = function (event) {
+                        if ($(event.target).attr('data-obj-id') !== undefined)
+                            $(event.target).attr('data-mouse-down', true);
+                    };
+                    this.isMouseUpOnDiv = function (event) {
+                        if ($(event.target).attr('data-obj-id') !== undefined) {
+                            $(event.target).attr('data-mouse-down', false);
+                        }
+                    };
+                    var time = false;
+                    var q = 0, t = 0;
+                    this.moveLine = function (event) {
+
+                        if ($(event.target).attr('data-mouse-down') == 'true') {
+
+                            setTimeout(function () { time = true }, 10);
+                            console.log(q++);
+                            if (time) {
+                                console.log(t++);
+                                time = false;
+                                var linesEndToChange = [];
+                                var linesBeginToChange = [];
+
+                                for (var line in Factory.LineArr) {
+
+                                    if (Factory.LineArr[line].getEndId() == $(event.target).attr('data-obj-id')) {
+                                        linesEndToChange.push(Factory.LineArr[line]);
+                                    }
+                                    if (Factory.LineArr[line].getBeginId() == $(event.target).attr('data-obj-id')) {
+                                        linesBeginToChange.push(Factory.LineArr[line]);
+                                    }
+
+                                    for (var id in linesEndToChange) {
+                                        var line = linesEndToChange[id].getLine(PositinSenter("[data-obj-id=" + linesEndToChange[id].getBeginId() + "]").top, PositinSenter("[data-obj-id=" + linesEndToChange[id].getBeginId() + "]").left, PositinSenter(event.target).top, PositinSenter(event.target).left);
+                                        $("[data-line-id=" + linesEndToChange[id].getId() + "]").replaceWith(line);
+
+                                    }
+                                    for (var id in linesBeginToChange) {
+                                        var line = linesBeginToChange[id].getLine(PositinSenter(event.target).top, PositinSenter(event.target).left, PositinSenter("[data-obj-id=" + linesBeginToChange[id].getEndId() + "]").top, PositinSenter("[data-obj-id=" + linesBeginToChange[id].getEndId() + "]").left)
+                                        $("[data-line-id=" + linesBeginToChange[id].getId() + "]").replaceWith(line);
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
+                    this.dataPost = function () {
+                        
+                        $.ajax({
+                            type: 'POST',
+                            url: '/MaindMap/Save',
+                            data: 'id=@ViewBag.mapId' + '&lines=' + $('#' + LineContainer).html() + '&nodes=' + $('#' + NodeContainer).html(),
+                            success: function (result) {
+                                console.log('Data received: ');
+                                console.log(result);
+                            }
+                        });
+                    }
+                }
+
+            })();
+
+            var qwe = (function () {
+                for (var name in window) {
+                    if (window[name] === this) {
+                        return name;
+
+                    }
+                }
+            })();
+            var myObject = {
+                'myFunction': function () {
+                    for (var name in window) {
+                        if (window[name] === this) {
+                            alert(name);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var SimpleStyle = new Style(new SimpleStyleView.SimpleStyleFactory());
+            SimpleStyle.init();
+
+        </script>
+</body>
+</html>

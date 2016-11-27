@@ -1,0 +1,9 @@
+﻿@model IEnumerable<string>
+<div id="maps-container">
+    @foreach (string s in Model)
+    {        
+        <a href="@Url.Action("Index","MaindMap",new { id = s})">
+            <div style="width:100px;height:100px;border-color:slategrey">map id: @s</div>
+        </a>
+    }
+</div>
